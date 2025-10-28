@@ -1,4 +1,4 @@
-import re
+import re     #For regular expression pattern matching (phone validation)
 import graphene
 from graphene_django import DjangoObjectType
 from django.db import IntegrityError, transaction
@@ -15,7 +15,7 @@ class CustomerType(DjangoObjectType):
     class Meta:
         model = Customer
         filter_fields = []
-        interfaces = (graphene.relay.Node,)
+        interfaces = (graphene.relay.Node,)  #gives it unique GraphQL ID.
 
 
 class ProductType(DjangoObjectType):
@@ -43,6 +43,7 @@ class CreateCustomer(graphene.Mutation):
         email = graphene.String(required=True)
         phone = graphene.String(required=False)
 
+    #outputs the mutation will return
     customer = graphene.Field(CustomerType)
     message = graphene.String()
 
@@ -57,7 +58,7 @@ class CreateCustomer(graphene.Mutation):
             raise Exception("Email already exists.")
 
 
-# Bulk Create Customers
+# Bulk Create Customers(Many customers at once)
 class BulkCreateCustomers(graphene.Mutation):
     class Arguments:
         input = graphene.List(graphene.JSONString, required=True)
@@ -65,7 +66,7 @@ class BulkCreateCustomers(graphene.Mutation):
     customers = graphene.List(CustomerType)
     errors = graphene.List(graphene.String)
 
-    @transaction.atomic
+    @transaction.atomic  #ensures that if one record fails, you can handle it safely without breaking the entire batch.
     def mutate(self, info, input):
         created = []
         errors = []
@@ -172,7 +173,7 @@ class Query(graphene.ObjectType):
     product = graphene.Field(ProductType, id=graphene.ID(required=True))
     order = graphene.Field(OrderType, id=graphene.ID(required=True))
 
-    # === Resolvers ===
+    # === Resolvers ===     Functions that tell GraphQL how to actually get the data from the database.
     def resolve_all_customers(root, info, order_by=None, **kwargs):
         qs = Customer.objects.all()
         if order_by:
@@ -202,10 +203,11 @@ class Query(graphene.ObjectType):
 
 
 # ===========================
-# Root Mutation
+# Root Mutation   Entry Point for Changes
 # ===========================
 class Mutation(graphene.ObjectType):
     create_customer = CreateCustomer.Field()
     bulk_create_customers = BulkCreateCustomers.Field()
     create_product = CreateProduct.Field()
     create_order = CreateOrder.Field()
+  #registers all mutations so GraphQL knows they exist.
