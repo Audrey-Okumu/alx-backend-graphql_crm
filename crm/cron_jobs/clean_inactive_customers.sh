@@ -3,7 +3,7 @@
 # Description: Deletes customers with no orders in the past year and logs the result.
 
 # Navigate to the Django project directory
-cd "/mnt/c/Users/PC/Desktop/graphql/alx_backend_graphql"
+cd "/mnt/c/Users/PC/Desktop/graphql/alx-backend-graphql_crm"
 
 # Activate the virtual environment 
  source .env/bin/activate  
