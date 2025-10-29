@@ -1,26 +1,47 @@
 from datetime import datetime
-import os
-import requests  # optional, used to ping GraphQL
+import logging
+from gql import gql, Client
+from gql.transport.requests import RequestsHTTPTransport
 
+# === Configuration ===
+GRAPHQL_URL = "http://localhost:8000/graphql"
 LOG_FILE = "/tmp/crm_heartbeat_log.txt"
-GRAPHQL_URL = "http://localhost:8000/graphql"  # update if needed
 
 def log_crm_heartbeat():
-    """Logs a heartbeat message to confirm CRM app is alive."""
-    now = datetime.now().strftime("%d/%m/%Y-%H:%M:%S")
-    message = f"{now} CRM is alive\n"
+    """Logs a heartbeat message and optionally checks GraphQL hello field."""
 
-    # Append heartbeat to the log file
-    with open(LOG_FILE, "a") as f:
-        f.write(message)
-
-    #  Verify GraphQL hello field
     try:
-        query = {"query": "{ hello }"}
-        response = requests.post(GRAPHQL_URL, json=query, timeout=5)
-        if response.status_code == 200:
-            print(f"{now} GraphQL endpoint responded successfully")
-        else:
-            print(f"{now} GraphQL endpoint returned error {response.status_code}")
+        # 1️⃣ Log heartbeat message
+        now = datetime.now().strftime("%d/%m/%Y-%H:%M:%S")
+        message = f"{now} CRM is alive"
+
+        # Use logging to append to file
+        logging.basicConfig(
+            filename=LOG_FILE,
+            level=logging.INFO,
+            format="%(message)s"
+        )
+        logging.info(message)
+
+        # 2️⃣ Optional: GraphQL health check
+        transport = RequestsHTTPTransport(
+            url=GRAPHQL_URL,
+            verify=False,
+            retries=3,
+        )
+
+        client = Client(transport=transport, fetch_schema_from_transport=True)
+
+        query = gql("""
+        query {
+            hello
+        }
+        """)
+
+        result = client.execute(query)
+        response_message = result.get("hello", "No response from GraphQL")
+
+        logging.info(f"GraphQL hello response: {response_message}")
+
     except Exception as e:
-        print(f"{now} GraphQL heartbeat failed: {e}")
+        logging.error(f"Error in CRM heartbeat: {e}")
