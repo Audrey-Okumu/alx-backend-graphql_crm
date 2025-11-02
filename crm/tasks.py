@@ -3,6 +3,7 @@ from gql import gql, Client
 from gql.transport.requests import RequestsHTTPTransport
 from datetime import datetime
 import logging
+import requests
 
 GRAPHQL_URL = "http://localhost:8000/graphql"
 LOG_FILE = "/tmp/crm_report_log.txt"
