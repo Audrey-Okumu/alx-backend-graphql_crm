@@ -6,6 +6,8 @@ from django.utils import timezone
 from .models import Customer, Product, Order
 from graphene_django.filter import DjangoFilterConnectionField
 from .filters import CustomerFilter, ProductFilter, OrderFilter
+from crm.models import Product
+
 
 
 # ===========================
